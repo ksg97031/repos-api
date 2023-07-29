@@ -1,13 +1,15 @@
+import json
 import requests
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.database import SessionLocal
 from repos import crud, models, schemas
 from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
-
 def get_db():
     db = SessionLocal()
     try:
@@ -32,14 +34,13 @@ def get_api(org_name:str, db: Session = Depends(get_db)):
     org = crud.get_org(db=db, org=org_name)
     if not org:
         response = request_repos_api(org_name)
-        if response != False:
-            org = schemas.OrgCreate(name=org_name, repos=response.text)
-            return crud.create_org(db=db, org=org)
-        return response
+        org = schemas.OrgCreate(name=org_name, repos=response.text)
+        crud.create_org(db=db, org=org)
+        return response.json()
     else:
         if is_one_day_passed(datetime.now(timezone.utc), org.updated_at):
-            repos = request_repos_api(org_name).text
-            crud.update_org(db=db, org=org, repos=repos)
-            return repos
+            response = request_repos_api(org_name)
+            crud.update_org(db=db, org=org, repos=response.text)
+            return response.json()
     
     return org.repos

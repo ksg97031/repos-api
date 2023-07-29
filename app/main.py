@@ -20,6 +20,5 @@ def get_application():
     return _app
 
 OrgBase.metadata.create_all(bind=engine)
-
 app = get_application()
 app.include_router(repos_router, prefix="/api")
