@@ -18,7 +18,7 @@ def get_db():
 def request_repos_api(org_name: str, page: int = 1):
     r = requests.get(f'https://api.github.com/orgs/{org_name}/repos?per_page=100&sort=updated&page={page}', headers={'Authorization': f'Bearer {settings.GITHUB_REST_API_KEY}'})
     if r.status_code != 200:
-        return HTTPException("Error about Github API", r.status_code)
+        raise HTTPException(status_code=r.status_code, detail="Error about Github API")
     
     return r
 
